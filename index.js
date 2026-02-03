@@ -1,4 +1,128 @@
 require('dotenv').config()
+const TelegramAPI = require('node-telegram-bot-api')
+TOKEN = process.env.BOT_TOKEN
+const db = require('./db')
+CMC_API = process.env.CMC_API
+const axios = require('axios')
+const bot = new TelegramAPI(TOKEN, {polling:true})
+
+async function checkAlerts () {
+
+    try{
+        const res = await db.query(`SELECT user_id,price,crypto,direction FROM alert WHERE trigered = false`)
+
+        
+        const final = res.rows
+
+        for(const alert of final) {
+
+            
+
+        
+        const cryptoPrice = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
+            headers:{
+                'x-CMC_PRO_API_KEY':CMC_API
+            },
+            params:{
+                symbol:'BTC,ETH,SOL'
+            }
+        })
+
+        const finaleth = (await cryptoPrice).data.data['ETH'].quote.USD.price.toFixed(2)
+        const finalbtc = Number((await cryptoPrice).data.data['BTC'].quote.USD.price.toFixed(2))
+
+
+        const finalSol = (await cryptoPrice).data.data['SOL'].quote.USD.price.toFixed(2)
+        
+        
+        if (alert.crypto === 'BTC') {
+
+    
+            if (alert.direction === 'above') {
+                
+                
+                const finalprice = Number(alert.price)
+                    
+                   
+                if (finalbtc > finalprice){
+                    try {await bot.sendMessage(alert.user_id,`alert! BTC alert above ${finalprice} was trigered`)
+                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'BTC' AND price = '${finalprice}' AND user_id = ${alert.user_id} AND direction = 'above'`)
+                     console.log('the alert was trigered')
+                    }
+                    catch(err) {
+                        await bot.sendMessage(alert.user_id,'the error occured')
+                    }
+                }
+            }
+            if (alert.direction === 'below') {
+                
+                
+                const finalprice = Number(alert.price)
+                
+                if (finalbtc < finalprice) {
+                   try  {await bot.sendMessage(alert.user_id,`alert!BTC alert below ${finalprice} was trigered`)
+                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'BTC' AND price = '${finalprice}' AND user_id = ${alert.user_id} AND direction = 'below'`)
+                    console.log('the alert was trigered')}
+                    catch(err) {
+                        await bot.sendMessage(alert.user_id,'the error occured')
+                    }
+                }
+            }
+        }
+        if (alert.crypto === 'ETH') {
+            if (alert.direction === 'above' ) {
+                const finalprice = Number(alert.price)
+                if (finaleth > finalprice){
+                   try  {await bot.sendMessage(alert.user_id,`alert!ETH alert above ${finalprice} was trigered`)
+                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'ETH' AND price = '${finalprice}' AND direction = 'above'`)}
+                    catch(err) {
+                        await bot.sendMessage(alert.user_id,'the error occured')
+                    }
+                }
+            }
+            if (alert.direction === 'below') {
+                const finalprice = Number(alert.price)
+
+                if (finaleth < finalprice) {
+                    try {await bot.sendMessage(alert.user_id,`alert!ETH alert below ${finalprice} was trigered`)
+                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'ETH' AND price = '${finalprice}' AND direction = 'below'`)}
+                    catch(err) {
+                        await bot.sendMessage(alert.user_id,'the error occured')
+                    }
+                }
+            }
+        }
+        if (alert.crypto === 'SOL') {
+            if(alert.direction === 'above') {
+                const finalprice = Number(alert.price)
+
+                if (finalSol > finalprice) {
+                   try {await bot.sendMessage(alert.user_id,`alert! SOL alert above ${finalprice} was trigered`)
+                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'SOL' AND price = '${finalprice}' AND direction = 'above'`)}
+                    catch(err) {
+                        await bot.sendMessage(alert.user_id,'the error occured')
+                    }
+                }
+            }
+            if (alert.direction === 'below') {
+                const finalprice = Number(alert.price)
+
+                if (finalSol < finalprice) {
+                    try {await bot.sendMessage(alert.user_id,`alert!SOL alert below ${finalprice} was trigered`)
+                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'SOL' AND price = '${finalprice}' AND direction = 'below'`)}
+                    catch(err) {
+                        await bot.sendMessage(alert.user_id,'the error occured')
+                    }
+                }
+            }
+        }
+    }
+    }
+    catch(err) {
+        console.error(err)
+    }
+}
+    
 
 const http = require('http');
 
@@ -17,13 +141,7 @@ http.createServer(async (req, res) => {
   res.end('Bot is running...');
 }).listen(8000);
 
-require('dotenv').config()
-const TelegramAPI = require('node-telegram-bot-api')
-TOKEN = process.env.BOT_TOKEN
-const db = require('./db')
-CMC_API = process.env.CMC_API
-const axios = require('axios')
-const bot = new TelegramAPI(TOKEN, {polling:true})
+
 
 
 const cryptoActives = {
@@ -280,106 +398,4 @@ bot.on('callback_query', async msg => {
 
 })
 
-async function checkAlerts () {
-
-    try{
-        const res = await db.query(`SELECT user_id,price,crypto,direction FROM alert WHERE trigered = false`)
-
-        
-        const final = res.rows
-
-        for(const alert of final) {
-
-            
-
-        
-        const cryptoPrice = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
-            headers:{
-                'x-CMC_PRO_API_KEY':CMC_API
-            },
-            params:{
-                symbol:'BTC,ETH,SOL'
-            }
-        })
-
-        const finaleth = (await cryptoPrice).data.data['ETH'].quote.USD.price.toFixed(2)
-        const finalbtc = Number((await cryptoPrice).data.data['BTC'].quote.USD.price.toFixed(2))
-
-
-        const finalSol = (await cryptoPrice).data.data['SOL'].quote.USD.price.toFixed(2)
-        
-        
-        if (alert.crypto === 'BTC') {
-
-    
-            if (alert.direction === 'above') {
-                
-                
-                const finalprice = Number(alert.price)
-                    
-                   
-                if (finalbtc > finalprice){
-                    await bot.sendMessage(alert.user_id,`alert! BTC alert above ${finalprice} was trigered`)
-                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'BTC' AND price = '${finalprice}' AND user_id = ${alert.user_id} AND direction = 'above'`)
-                     console.log('the alert was trigered')
-                    
-                }
-            }
-            if (alert.direction === 'below') {
-                
-                
-                const finalprice = Number(alert.price)
-                
-                if (finalbtc < finalprice) {
-                    await bot.sendMessage(alert.user_id,`alert!BTC alert below ${finalprice} was trigered`)
-                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'BTC' AND price = '${finalprice}' AND user_id = ${alert.user_id} AND direction = 'below'`)
-                    console.log('the alert was trigered')
-                }
-            }
-        }
-        if (alert.crypto === 'ETH') {
-            if (alert.direction === 'above' ) {
-                const finalprice = Number(alert.price)
-                if (finaleth > finalprice){
-                    await bot.sendMessage(alert.user_id,`alert!ETH alert above ${finalprice} was trigered`)
-                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'ETH' AND price = '${finalprice}' AND direction = 'above'`)
-                }
-            }
-            if (alert.direction === 'below') {
-                const finalprice = Number(alert.price)
-
-                if (finaleth < finalprice) {
-                    await bot.sendMessage(alert.user_id,`alert!ETH alert below ${finalprice} was trigered`)
-                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'ETH' AND price = '${finalprice}' AND direction = 'below'`)
-                }
-            }
-        }
-        if (alert.crypto === 'SOL') {
-            if(alert.direction === 'above') {
-                const finalprice = Number(alert.price)
-
-                if (finalSol > finalprice) {
-                    await bot.sendMessage(alert.user_id,`alert! SOL alert above ${finalprice} was trigered`)
-                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'SOL' AND price = '${finalprice}' AND direction = 'above'`)
-                }
-            }
-            if (alert.direction === 'below') {
-                const finalprice = Number(alert.price)
-
-                if (finalSol < finalprice) {
-                    await bot.sendMessage(alert.user_id,`alert!SOL alert below ${finalprice} was trigered`)
-                    await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'SOL' AND price = '${finalprice}' AND direction = 'below'`)
-                }
-            }
-        }
-    }
-    }
-    catch(err) {
-        console.error(err)
-    }
-}
-            
-        
-        
-checkAlerts()
 
