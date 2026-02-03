@@ -44,7 +44,6 @@ const direction = {
 }
 
 bot.setMyCommands([
-    {command:'/start',description:'start command'},
     {command:'/info',description:'a command about this bot'},
     {command:'/set_alert',description:'a command that sets the alert'},
     {command:'/view_alerts',description:'a command that write all your current alerts'},
