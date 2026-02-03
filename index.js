@@ -1,9 +1,18 @@
 const http = require('http');
 
 // This tiny server tells Koyeb "I am alive!" so it doesn't kill your bot.
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Bot is running...');
+http.createServer(async (req, res) => {
+
+
+    try{
+        await checkAlerts()
+    }
+    catch(err) {
+        console.log('the error occured')
+    }
+
+  await res.writeHead(200, { 'Content-Type': 'text/plain' });
+  await res.end('Bot is running...');
 }).listen(8000);
 
 require('dotenv').config()
@@ -373,6 +382,3 @@ async function checkAlerts () {
         
 checkAlerts()
 
-setInterval(async () => {
-    checkAlerts()
-}, 600000);
