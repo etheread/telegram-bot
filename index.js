@@ -1,3 +1,11 @@
+const http = require('http');
+
+// This tiny server tells Koyeb "I am alive!" so it doesn't kill your bot.
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Bot is running...');
+}).listen(process.env.PORT || 8080);
+
 require('dotenv').config()
 const TelegramAPI = require('node-telegram-bot-api')
 TOKEN = process.env.BOT_TOKEN
