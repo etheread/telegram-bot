@@ -263,6 +263,7 @@ bot.on('callback_query', async msg => {
             await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
             bot.once('callback_query', async msg => {
                 const values = msg.data
+                const text = msg.text
                 const chatid = msg.message.chat.id
                 if (values === 'above'){
                     try {
@@ -282,7 +283,7 @@ bot.on('callback_query', async msg => {
                     catch(err) {
                         await bot.sendMessage(chatId,'ошибка')
                     }
-                    await bot.sendMessage(chatId,`ваш алерт:${values},BTC,${userInp}`)
+                    await bot.sendMessage(chatId,`ваш алерт:${text},BTC,${userInp}`)
                 }
         
             })
@@ -317,6 +318,7 @@ bot.on('callback_query', async msg => {
             await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
         bot.once('callback_query',async cb => {
             const values = cb.data
+            const text = cb.text
 
             if (values === 'above'){
                 try { 
@@ -335,7 +337,7 @@ bot.on('callback_query', async msg => {
                     await bot.sendMessage(chatId,'ошибка')
                 }
             }
-            await bot.sendMessage(chatId,`ваш алерт:${values}, ETH,${userInp}`)
+            await bot.sendMessage(chatId,`ваш алерт:${text}, ETH,${userInp}`)
         })
         })
 
@@ -370,7 +372,8 @@ bot.on('callback_query', async msg => {
 
         bot.once('callback_query',async cb => {
             const data1 = cb.data
-            
+            const text = msg.text
+
 
             if (data1 === 'above') {
                 try{
@@ -388,7 +391,7 @@ bot.on('callback_query', async msg => {
                     await bot.sendMessage(chatId,'ошибка')
                 }
             }
-            await bot.sendMessage(chatId,`ваше алерт :${data1},SOL,${userInp}`)
+            await bot.sendMessage(chatId,`ваше алерт :${text},SOL,${userInp}`)
         })
         
         })
