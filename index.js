@@ -45,12 +45,12 @@ async function checkAlerts () {
                     
                    
                 if (finalbtc > finalprice){
-                    try {await bot.sendMessage(alert.user_id,`alert! BTC alert above ${finalprice} was trigered`)
+                    try {await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по BTC выше ${finalprice}`)
                      await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'BTC' AND price = '${finalprice}' AND user_id = ${alert.user_id} AND direction = 'above'`)
                      console.log('the alert was trigered')
                     }
                     catch(err) {
-                        await bot.sendMessage(alert.user_id,'the error occured')
+                        await bot.sendMessage(alert.user_id,'ошибка')
                     }
                 }
             }
@@ -60,11 +60,11 @@ async function checkAlerts () {
                 const finalprice = Number(alert.price)
                 
                 if (finalbtc < finalprice) {
-                   try  {await bot.sendMessage(alert.user_id,`alert!BTC alert below ${finalprice} was trigered`)
+                   try  {await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по BTC ниже ${finalprice}`)
                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'BTC' AND price = '${finalprice}' AND user_id = ${alert.user_id} AND direction = 'below'`)
                     console.log('the alert was trigered')}
                     catch(err) {
-                        await bot.sendMessage(alert.user_id,'the error occured')
+                        await bot.sendMessage(alert.user_id,'ошибка')
                     }
                 }
             }
@@ -73,7 +73,7 @@ async function checkAlerts () {
             if (alert.direction === 'above' ) {
                 const finalprice = Number(alert.price)
                 if (finaleth > finalprice){
-                   try  {await bot.sendMessage(alert.user_id,`alert!ETH alert above ${finalprice} was trigered`)
+                   try  {await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по ETH выше ${finalprice}`)
                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'ETH' AND price = '${finalprice}' AND direction = 'above'`)}
                     catch(err) {
                         await bot.sendMessage(alert.user_id,'the error occured')
@@ -84,7 +84,7 @@ async function checkAlerts () {
                 const finalprice = Number(alert.price)
 
                 if (finaleth < finalprice) {
-                    try {await bot.sendMessage(alert.user_id,`alert!ETH alert below ${finalprice} was trigered`)
+                    try {await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по ETH ниже ${finalprice}`)
                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'ETH' AND price = '${finalprice}' AND direction = 'below'`)}
                     catch(err) {
                         await bot.sendMessage(alert.user_id,'the error occured')
@@ -97,7 +97,7 @@ async function checkAlerts () {
                 const finalprice = Number(alert.price)
 
                 if (finalSol > finalprice) {
-                   try {await bot.sendMessage(alert.user_id,`alert! SOL alert above ${finalprice} was trigered`)
+                   try {await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по SOL выше ${finalprice}`)
                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'SOL' AND price = '${finalprice}' AND direction = 'above'`)}
                     catch(err) {
                         await bot.sendMessage(alert.user_id,'the error occured')
@@ -108,7 +108,7 @@ async function checkAlerts () {
                 const finalprice = Number(alert.price)
 
                 if (finalSol < finalprice) {
-                    try {await bot.sendMessage(alert.user_id,`alert!SOL alert below ${finalprice} was trigered`)
+                    try {await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по SOL ниже ${finalprice}`)
                     await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'SOL' AND price = '${finalprice}' AND direction = 'below'`)}
                     catch(err) {
                         await bot.sendMessage(alert.user_id,'the error occured')
@@ -157,17 +157,17 @@ const cryptoActives = {
 const direction = {
     reply_markup:{
         inline_keyboard:[
-            [{text:'above',callback_data:'above'}],
-            [{text:'below',callback_data:'below'}]
+            [{text:'выше',callback_data:'above'}],
+            [{text:'ниже',callback_data:'below'}]
         ]
     }
 }
 
 bot.setMyCommands([
-    {command:'/info',description:'a command about this bot'},
-    {command:'/set_alert',description:'a command that sets the alert'},
-    {command:'/view_alerts',description:'a command that write all your current alerts'},
-    {command:'/delete_alert',description:'a command that deletes alert by id'}
+    {command:'/info',description:'инфо про бот и его команды'},
+    {command:'/set_alert',description:'команда для создания тригера'},
+    {command:'/view_alerts',description:'просмотреть свои тригеры'},
+    {command:'/delete_alert',description:'команда чтобы удалить тригер'}
 ])
 
 bot.on('message', async msg => {
@@ -176,7 +176,7 @@ bot.on('message', async msg => {
 
 
     if (text === '/start'){
-        await bot.sendMessage(chatId,'Hello and welcome to reaper alert bot')
+        await bot.sendMessage(chatId,'Приветствуем в reaper alert')
         try{
             await db.query(`INSERT INTO users(chat_id,username) VALUES (${chatId},'${msg.chat.first_name}')`)
         }
@@ -185,10 +185,10 @@ bot.on('message', async msg => {
         }
     }
     if (text === '/info'){
-        await bot.sendMessage(chatId,'Real-time Crypto Price Alerts. Set your target, sit back, and get notified the second your coin hits the mark')
+        await bot.sendMessage(chatId,'Крипто-алерты в реальном времени. Установите цель, расслабьтесь и получите уведомление в ту же секунду, когда монета достигнет нужной отметки.' + '\n' + 'commands:"/set_alert":создать тригер,"/view_alerts":просмотр текущих тригеров,"/delete_alert":удалить тригер с помощью id')
     }
     if(text === '/set_alert'){
-        await bot.sendMessage(chatId,'choose the crypto that you want to set an alert to',cryptoActives)
+        await bot.sendMessage(chatId,'выберите крипту',cryptoActives)
     }
     if (text === '/view_alerts'){
         try{
@@ -205,14 +205,14 @@ bot.on('message', async msg => {
             await bot.sendMessage(chatId,text)
         }
         catch(err) {
-            await bot.sendMessage(chatId,'the error occured')
+            await bot.sendMessage(chatId,'ошибка')
         }
 
 
 
     }
     if (text === '/delete_alert') {
-        await bot.sendMessage(chatId,'write the alert id that you want to delete')
+        await bot.sendMessage(chatId,'напишите id алерта чтобы удалить его')
         bot.once('message', async msg => {
             const chatid = msg.chat.id
             const text = msg.text
@@ -221,10 +221,10 @@ bot.on('message', async msg => {
 
             try{
                 await db.query(`DELETE FROM alert WHERE alert_id = ${finaltext} AND user_id = ${chatid}`)
-                await bot.sendMessage(chatid,`the alert with id:${finaltext} was successfully deleted`)
+                await bot.sendMessage(chatid,`алерт с id:${finaltext} был удален`)
             }
             catch(err) {
-                await bot.sendMessage(chatid,'the error occured')
+                await bot.sendMessage(chatid,'ошибка')
             }
         })
     }
@@ -239,7 +239,7 @@ bot.on('callback_query', async msg => {
     const chatId = msg.message.chat.id
 
     if (data === 'ask_price_btc'){
-        const prompt = bot.sendMessage(chatId,'Write price for BTC',{
+        const prompt = bot.sendMessage(chatId,'напишите цену для  BTC',{
             reply_markup:{
                 force_reply:true
             }
@@ -254,13 +254,13 @@ bot.on('callback_query', async msg => {
         })
 
         const answer = (await price).data.data['BTC'].quote.USD.price.toFixed(2)
-        await bot.sendMessage(chatId,`the btc price is ${answer}`)
+        await bot.sendMessage(chatId,`цена bTC: ${answer}`)
         
             bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
             const userInp = msg.text
 
             
-            await bot.sendMessage(chatId,'where do you want to get your price',direction)
+            await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
             bot.once('callback_query', async msg => {
                 const values = msg.data
                 const chatid = msg.message.chat.id
@@ -270,9 +270,9 @@ bot.on('callback_query', async msg => {
                         
                     }
                     catch(err) {
-                        await bot.sendMessage(chatId,'the error occured')
+                        await bot.sendMessage(chatId,'ошибка')
                     }
-                    await bot.sendMessage(chatId,`your alert is:${values},BTC,${userInp}`)
+                    await bot.sendMessage(chatId,`ваш алерт:${values},BTC,${userInp}`)
                 }
                 if (values === 'below') {
                     try {
@@ -280,9 +280,9 @@ bot.on('callback_query', async msg => {
                         
                     }
                     catch(err) {
-                        await bot.sendMessage(chatId,'the error occured')
+                        await bot.sendMessage(chatId,'ошибка')
                     }
-                    await bot.sendMessage(chatId,`your alert is:${values},BTC,${userInp}`)
+                    await bot.sendMessage(chatId,`ваш алерт:${values},BTC,${userInp}`)
                 }
         
             })
@@ -290,7 +290,7 @@ bot.on('callback_query', async msg => {
         
     })}
     if(data === 'ask_price_eth'){
-        const prompt = bot.sendMessage(chatId,'write price for eth',{
+        const prompt = bot.sendMessage(chatId,'напишите цену для ETH',{
             reply_markup:{
                 force_reply:true
             }
@@ -308,13 +308,13 @@ bot.on('callback_query', async msg => {
         const answer = (await price).data.data['ETH'].quote.USD.price.toFixed(2)
         //in order to select all alert i just need to select user id from the database and compare that to the chatid
 
-        bot.sendMessage(chatId,`the eth price is ${answer}`)
+        bot.sendMessage(chatId,`цена eth: ${answer}`)
         bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
             const userInp = msg.text
 
 
             
-            await bot.sendMessage(chatId,'where do you want your price to go',direction)
+            await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
         bot.once('callback_query',async cb => {
             const values = cb.data
 
@@ -323,7 +323,7 @@ bot.on('callback_query', async msg => {
                     await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','ETH',false,'above')`)
                 }
                 catch(err) {
-                    await bot.sendMessage(chatId,'the error occured')
+                    await bot.sendMessage(chatId,'ошибка')
                 }
             }
             
@@ -332,16 +332,16 @@ bot.on('callback_query', async msg => {
                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','ETH',false,'below')`)
                 }
                 catch(err){
-                    await bot.sendMessage(chatId,'the error occured')
+                    await bot.sendMessage(chatId,'ошибка')
                 }
             }
-            await bot.sendMessage(chatId,`your alert is:${values}, ETH,${userInp}`)
+            await bot.sendMessage(chatId,`ваш алерт:${values}, ETH,${userInp}`)
         })
         })
 
     }
     if (data === 'ask_price_sol'){
-        const prompt = bot.sendMessage(chatId,'write your price for sol',{
+        const prompt = bot.sendMessage(chatId,'напишите цену для SOL',{
             reply_markup:{
                 force_reply:true
             }
@@ -360,13 +360,13 @@ bot.on('callback_query', async msg => {
         const answer = (await price).data.data['SOL'].quote.USD.price.toFixed(2)
 
         
-        await bot.sendMessage(chatId,`the sol price is ${answer}`)
+        await bot.sendMessage(chatId,`цена SOL: ${answer}`)
 
         bot.onReplyToMessage(chatId,(await prompt).message_id, async msg => {
             const userInp = msg.text
 
             
-        await bot.sendMessage(chatId,'where do you want your price to go',direction)
+        await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
 
         bot.once('callback_query',async cb => {
             const data1 = cb.data
@@ -377,7 +377,7 @@ bot.on('callback_query', async msg => {
                     await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','SOL',false,'above')`)
                 }
                 catch(err) {
-                    await bot.sendMessage(chatId,'the error occured')
+                    await bot.sendMessage(chatId,'ошибка')
                 }
             }
             if(data1 === 'below') {
@@ -385,10 +385,10 @@ bot.on('callback_query', async msg => {
                     await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','SOL',false,'below')`)
                 }
                 catch(err) {
-                    await bot.sendMessage(chatId,'the error occured')
+                    await bot.sendMessage(chatId,'ошибка')
                 }
             }
-            await bot.sendMessage(chatId,`your alert is :${data1},SOL,at ${userInp}`)
+            await bot.sendMessage(chatId,`ваше алерт :${data1},SOL,${userInp}`)
         })
         
         })
