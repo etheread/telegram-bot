@@ -24,12 +24,13 @@ async function checkAlerts () {
                 'x-CMC_PRO_API_KEY':CMC_API
             },
             params:{
-                symbol:'BTC,ETH,SOL'
+                symbol:'BTC,ETH,SOL,TON'
             }
         })
 
         const finaleth = (await cryptoPrice).data.data['ETH'].quote.USD.price.toFixed(2)
         const finalbtc = Number((await cryptoPrice).data.data['BTC'].quote.USD.price.toFixed(2))
+        const finalton = (await cryptoPrice).data.data['TON'].quote.USD.price.toFixed(2)
 
 
         const finalSol = (await cryptoPrice).data.data['SOL'].quote.USD.price.toFixed(2)
@@ -116,6 +117,35 @@ async function checkAlerts () {
                 }
             }
         }
+        if (alert.crypto === 'TON'){
+            if (alert.direction === 'above'){
+                const finalprice = Number(alert.price)
+                    if (finalton > finalprice){
+                        try{
+                            await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по TON выше ${finalprice}`)
+                            await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'TON' AND price = '${finalprice}' AND direction = 'above'`)
+                        }
+                        catch(err) {
+                            await bot.sendMessage(alert.user_id,'ошибка')
+                        }
+                    }
+                }
+                if(alert.direction === 'below') {
+                    const finalprice = Number(alert.price)
+
+                    if (finalton < finalprice) {
+                        try{
+                            await bot.sendMessage(alert.user_id,`Внимание! Сработал тригер по TON ниже ${finalprice}`)
+                            await db.query(`UPDATE alert SET trigered = true WHERE user_id = ${alert.user_id} AND crypto = 'TON' AND price = '${finalprice}' AND direction = 'below'`)
+                        }
+                         catch(err) {
+                        await bot.sendMessage(alert.user_id,'ошибка')
+                    }
+                    }
+                   
+                }
+            }
+        
     }
     }
     catch(err) {
@@ -149,7 +179,8 @@ const cryptoActives = {
         inline_keyboard:[
             [{text:'btc',callback_data:'ask_price_btc'}],
             [{text:'eth',callback_data:'ask_price_eth'}],
-            [{text:'sol',callback_data:'ask_price_sol'}]
+            [{text:'sol',callback_data:'ask_price_sol'}],
+            [{text:'ton',callback_data:'ask_price_ton'}]
         ]
     }
 }
@@ -290,6 +321,58 @@ bot.on('callback_query', async msg => {
             
         
     })}
+    if (data === 'ask_price_ton') {
+        const prompt = bot.sendMessage(chatId,'напишите цену для  BTC',{
+            reply_markup:{
+                force_reply:true
+            }
+        })
+        const price = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
+            headers:{
+                'x-CMC_PRO_API_KEY':CMC_API
+            },
+            params:{
+                symbol:'TON'
+            }
+        })
+
+        const answer = (await price).data.data['TON'].quote.USD.price.toFixed(2)
+        await bot.sendMessage(chatId,`цена bTC: ${answer}`)
+        
+            bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
+            const userInp = msg.text
+
+            
+            await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
+            bot.once('callback_query', async msg => {
+                const values = msg.data
+                const text = msg.text
+                const chatid = msg.message.chat.id
+                if (values === 'above'){
+                    try {
+                        await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','TON',false,'above')`)
+                        
+                    }
+                    catch(err) {
+                        await bot.sendMessage(chatId,'ошибка')
+                    }
+                    await bot.sendMessage(chatId,`ваш алерт:${values},TON,${userInp}`)
+                }
+                if (values === 'below') {
+                    try {
+                        await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','TON',false,'below')`)
+                        
+                    }
+                    catch(err) {
+                        await bot.sendMessage(chatId,'ошибка')
+                    }
+                    await bot.sendMessage(chatId,`ваш алерт:${text},TON,${userInp}`)
+                }
+        
+            })
+            
+        
+    })
     if(data === 'ask_price_eth'){
         const prompt = bot.sendMessage(chatId,'напишите цену для ETH',{
             reply_markup:{
@@ -396,9 +479,6 @@ bot.on('callback_query', async msg => {
         
         })
         
-
     }
-
-})
-
+}})
 
