@@ -402,7 +402,7 @@ bot.on('callback_query', async msg => {
             await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
         bot.once('callback_query',async msg => {
             const values = msg.data
-            const text = msg.text
+            
 
             if (values === 'above'){
                 try { 
@@ -421,7 +421,7 @@ bot.on('callback_query', async msg => {
                     await bot.sendMessage(chatId,'ошибка')
                 }
             }
-            await bot.sendMessage(chatId,`ваш алерт:${text}, ETH,${userInp}`)
+            await bot.sendMessage(chatId,`ваш алерт:${values}, ETH,${userInp}`)
         })
         })
 
