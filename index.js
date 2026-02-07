@@ -169,7 +169,7 @@ http.createServer(async (req, res) => {
     }
 
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Bot is running...');
+  res.end('hello world');
 }).listen(8080);
 
 
@@ -387,3 +387,4 @@ bot.on('callback_query', async msg => {
     }
 
 }); 
+
