@@ -285,7 +285,7 @@ bot.on('callback_query', async msg => {
             }
         })
 
-        const answer = Number((await price).data.data['BTC'].quote.USD.price.toFixed(2))
+        const answer = Number(price.data.data['BTC'].quote.USD.price.toFixed(2))
         await bot.sendMessage(chatId,`цена BTC: ${answer}`)
         
             bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
@@ -390,19 +390,19 @@ bot.on('callback_query', async msg => {
         })
 
 
-        const answer = Number((await price).data.data['ETH'].quote.USD.price.toFixed(2))
+        const answer = Number(price.data.data['ETH'].quote.USD.price.toFixed(2))
         //in order to select all alert i just need to select user id from the database and compare that to the chatid
 
         bot.sendMessage(chatId,`цена eth: ${answer}`)
-        bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
+        bot.onReplyToMessage(chatId,prompt.message_id,async msg => {
             const userInp = msg.text
 
 
             
             await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
-        bot.once('callback_query',async msg => {
-            const values = msg.data
-            const text = msg.text
+        bot.once('callback_query',async cbmsg => {
+            const values = cbmsg.data
+            const text = cbmsg.text
 
             if (values === 'above'){
                 try { 
@@ -421,8 +421,9 @@ bot.on('callback_query', async msg => {
                 catch(err){
                     await bot.sendMessage(chatId,'ошибка')
                 }
+                await bot.sendMessage(chatId,`ваш алерт:${values}, ETH,${userInp}`)
             }
-            await bot.sendMessage(chatId,`ваш алерт:${values}, ETH,${userInp}`)
+            
         })
         })
 
@@ -449,7 +450,7 @@ bot.on('callback_query', async msg => {
         
         await bot.sendMessage(chatId,`цена SOL: ${answer}`)
 
-        bot.onReplyToMessage(chatId,(await prompt).message_id, async msg => {
+        bot.onReplyToMessage(chatId,prompt.message_id, async msg => {
             const userInp = msg.text
 
             
@@ -457,7 +458,7 @@ bot.on('callback_query', async msg => {
 
         bot.once('callback_query',async cb => {
             const data1 = cb.data
-            const text = msg.text
+            const text = cb.text
 
 
             if (data1 === 'above') {
@@ -482,5 +483,6 @@ bot.on('callback_query', async msg => {
         })
         
     }
-}})
+}
+})
 
