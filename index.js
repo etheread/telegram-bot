@@ -14,11 +14,6 @@ async function checkAlerts () {
         
         const final = res.rows
 
-        for(const alert of final) {
-
-            
-
-        
         const cryptoPrice = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
             headers:{
                 'x-CMC_PRO_API_KEY':CMC_API
@@ -27,6 +22,12 @@ async function checkAlerts () {
                 symbol:'BTC,ETH,SOL,TON'
             }
         })
+
+        for(const alert of final) {
+
+
+        
+        
 
         const finaleth = (await cryptoPrice).data.data['ETH'].quote.USD.price.toFixed(2)
         const finalbtc = Number((await cryptoPrice).data.data['BTC'].quote.USD.price.toFixed(2))
@@ -284,7 +285,7 @@ bot.on('callback_query', async msg => {
             }
         })
 
-        const answer = (await price).data.data['BTC'].quote.USD.price.toFixed(2)
+        const answer = Number((await price).data.data['BTC'].quote.USD.price.toFixed(2))
         await bot.sendMessage(chatId,`цена BTC: ${answer}`)
         
             bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
@@ -336,7 +337,7 @@ bot.on('callback_query', async msg => {
             }
         })
 
-        const answer = (await price).data.data['TON'].quote.USD.price.toFixed(2)
+        const answer = Number((await price).data.data['TON'].quote.USD.price.toFixed(2))
         await bot.sendMessage(chatId,`цена TON: ${answer}`)
         
             bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
@@ -389,7 +390,7 @@ bot.on('callback_query', async msg => {
         })
 
 
-        const answer = (await price).data.data['ETH'].quote.USD.price.toFixed(2)
+        const answer = Number((await price).data.data['ETH'].quote.USD.price.toFixed(2))
         //in order to select all alert i just need to select user id from the database and compare that to the chatid
 
         bot.sendMessage(chatId,`цена eth: ${answer}`)
@@ -399,9 +400,9 @@ bot.on('callback_query', async msg => {
 
             
             await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
-        bot.once('callback_query',async cb => {
-            const values = cb.data
-            const text = cb.text
+        bot.once('callback_query',async msg => {
+            const values = msg.data
+            const text = msg.text
 
             if (values === 'above'){
                 try { 
@@ -442,7 +443,7 @@ bot.on('callback_query', async msg => {
         })
 
 
-        const answer = (await price).data.data['SOL'].quote.USD.price.toFixed(2)
+        const answer = Number((await price).data.data['SOL'].quote.USD.price.toFixed(2))
 
         
         await bot.sendMessage(chatId,`цена SOL: ${answer}`)
