@@ -170,7 +170,7 @@ http.createServer(async (req, res) => {
 
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Bot is running...');
-}).listen(8000);
+}).listen(8080);
 
 
 
