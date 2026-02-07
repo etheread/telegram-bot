@@ -285,7 +285,7 @@ bot.on('callback_query', async msg => {
         })
 
         const answer = (await price).data.data['BTC'].quote.USD.price.toFixed(2)
-        await bot.sendMessage(chatId,`цена bTC: ${answer}`)
+        await bot.sendMessage(chatId,`цена BTC: ${answer}`)
         
             bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
             const userInp = msg.text
@@ -322,7 +322,7 @@ bot.on('callback_query', async msg => {
         
     })}
     if (data === 'ask_price_ton') {
-        const prompt = bot.sendMessage(chatId,'напишите цену для  BTC',{
+        const prompt = bot.sendMessage(chatId,'напишите цену для TON',{
             reply_markup:{
                 force_reply:true
             }
@@ -337,7 +337,7 @@ bot.on('callback_query', async msg => {
         })
 
         const answer = (await price).data.data['TON'].quote.USD.price.toFixed(2)
-        await bot.sendMessage(chatId,`цена bTC: ${answer}`)
+        await bot.sendMessage(chatId,`цена TON: ${answer}`)
         
             bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
             const userInp = msg.text
