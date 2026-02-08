@@ -169,7 +169,8 @@ http.createServer(async (req, res) => {
     }
 
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('hello world');
+  res.sendDate('hello world')
+  res.end('Bot is running...');
 }).listen(8080);
 
 
@@ -186,6 +187,14 @@ const cryptoActives = {
     }
 }
 
+const viewAlertChoice = {
+    reply_markup:{
+        inline_keyboard:[
+            [{text:'просмотреть все активные',callback_data:'view_all_active'}],
+            [{text:'удалить все неактивные',callback_data:'delete_all_inactive'}]
+        ]
+    }
+}
 const direction = {
     reply_markup:{
         inline_keyboard:[
@@ -234,7 +243,7 @@ bot.on('message', async msg => {
         .replace(/:/g, ': ')           // Adds a space after colons for readability
         .replace(/,/g, '\n');
         
-            await bot.sendMessage(chatId,text)
+            await bot.sendMessage(chatId,text,viewAlertChoice)
         }
         catch(err) {
             await bot.sendMessage(chatId,'ошибка')
@@ -267,124 +276,245 @@ bot.on('message', async msg => {
 
 
 bot.on('callback_query', async msg => {
-    const data = msg.data;
-    const chatId = msg.message.chat.id;
+    const data = msg.data
+    const chatId = msg.message.chat.id
+    if(data === 'view_all_active'){
+        try{
+            const active = await db.query(`SELECT * FROM alert WHERE trigered = false AND user_id = ${chatId}`)
+            const text = JSON.stringify(active.rows).replace(/[\[\]]/g, '')        // Removes [ and ]
+        .replace(/{/g, '\n—\n')        // Replaces start of object { with a separator line
+        .replace(/}/g, '')             // Removes closing }
+        .replace(/"/g, '')             // Removes all double quotes
+        .replace(/:/g, ': ')           // Adds a space after colons for readability
+        .replace(/,/g, '\n');
+        await bot.sendMessage(chatId,text)
+        }
+        catch(err) {
+            await bot.sendMessage(chatId,'ошибка')
+        }
+    }
+    if (data === 'delete_all_inactive') {
+        try{
+            await db.query(`DELETE * FROM alert WHERE user_id = ${chatId} AND trigered = true AND user_id = ${chatId}`)
+        }
+        catch(err) {
+            await bot.sendMessage(chatId,'ошибка')
+        }
+    }
 
-    // --- BTC SECTION ---
-    if (data === 'ask_price_btc') {
-        const prompt = await bot.sendMessage(chatId, 'напишите цену для BTC', {
-            reply_markup: { force_reply: true }
-        });
-        const price = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest', {
-            headers: { 'x-CMC_PRO_API_KEY': CMC_API },
-            params: { symbol: 'BTC' }
-        });
+    if (data === 'ask_price_btc'){
+        const prompt = bot.sendMessage(chatId,'напишите цену для  BTC',{
+            reply_markup:{
+                force_reply:true
+            }
+        })
+        const price = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
+            headers:{
+                'x-CMC_PRO_API_KEY':CMC_API
+            },
+            params:{
+                symbol:'BTC'
+            }
+        })
 
-        const answer = Number(price.data.data['BTC'].quote.USD.price.toFixed(2));
-        await bot.sendMessage(chatId, `цена BTC: ${answer}`);
+        const answer = Number(price.data.data['BTC'].quote.USD.price.toFixed(2))
+        await bot.sendMessage(chatId,`цена BTC: ${answer}`)
+        
+            bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
+            const userInp = msg.text
 
-        bot.onReplyToMessage(chatId, prompt.message_id, async replyMsg => {
-            const userInp = replyMsg.text;
-            await bot.sendMessage(chatId, 'выберите направление', direction);
             
-            bot.once('callback_query', async cbMsg => {
-                const values = cbMsg.data;
-                try {
-                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','BTC',false,'${values}')`);
-                    await bot.sendMessage(chatId, `Ваш алерт создан: BTC ${values} ${userInp}`);
-                } catch (err) {
-                    await bot.sendMessage(chatId, 'ошибка при сохранении');
+            await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
+            bot.once('callback_query', async msg => {
+                const values = msg.data
+                const text = msg.text
+                const chatid = msg.message.chat.id
+                if (values === 'above'){
+                    try {
+                        await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','BTC',false,'above')`)
+                        
+                    }
+                    catch(err) {
+                        await bot.sendMessage(chatId,'ошибка')
+                    }
+                    await bot.sendMessage(chatId,`ваш алерт:${values},BTC,${userInp}`)
                 }
-            });
-        });
-    }
-
-    // --- TON SECTION ---
+                if (values === 'below') {
+                    try {
+                        await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','BTC',false,'below')`)
+                        
+                    }
+                    catch(err) {
+                        await bot.sendMessage(chatId,'ошибка')
+                    }
+                    await bot.sendMessage(chatId,`ваш алерт:${text},BTC,${userInp}`)
+                }
+        
+            })
+            
+        
+    })}
     if (data === 'ask_price_ton') {
-        const prompt = await bot.sendMessage(chatId, 'напишите цену для TON', {
-            reply_markup: { force_reply: true }
-        });
-        const price = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest', {
-            headers: { 'x-CMC_PRO_API_KEY': CMC_API },
-            params: { symbol: 'TON' }
-        });
+        const prompt = bot.sendMessage(chatId,'напишите цену для TON',{
+            reply_markup:{
+                force_reply:true
+            }
+        })
+        const price = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
+            headers:{
+                'x-CMC_PRO_API_KEY':CMC_API
+            },
+            params:{
+                symbol:'TON'
+            }
+        })
 
-        const answer = Number(price.data.data['TON'].quote.USD.price.toFixed(2));
-        await bot.sendMessage(chatId, `цена TON: ${answer}`);
+        const answer = Number((await price).data.data['TON'].quote.USD.price.toFixed(2))
+        await bot.sendMessage(chatId,`цена TON: ${answer}`)
+        
+            bot.onReplyToMessage(chatId,(await prompt).message_id,async msg => {
+            const userInp = msg.text
 
-        bot.onReplyToMessage(chatId, prompt.message_id, async replyMsg => {
-            const userInp = replyMsg.text;
-            await bot.sendMessage(chatId, 'выберите направление', direction);
-
-            bot.once('callback_query', async cbMsg => {
-                const values = cbMsg.data;
-                try {
-                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','TON',false,'${values}')`);
-                    await bot.sendMessage(chatId, `Ваш алерт создан: TON ${values} ${userInp}`);
-                } catch (err) {
-                    await bot.sendMessage(chatId, 'ошибка при сохранении');
+            
+            await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
+            bot.once('callback_query', async msg => {
+                const values = msg.data
+                const text = msg.text
+                const chatid = msg.message.chat.id
+                if (values === 'above'){
+                    try {
+                        await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','TON',false,'above')`)
+                        
+                    }
+                    catch(err) {
+                        await bot.sendMessage(chatId,'ошибка')
+                    }
+                    await bot.sendMessage(chatId,`ваш алерт:${values},TON,${userInp}`)
                 }
-            });
-        });
-    }
-
-    // --- ETH SECTION ---
-    if (data === 'ask_price_eth') {
-        const prompt = await bot.sendMessage(chatId, 'напишите цену для ETH', {
-            reply_markup: { force_reply: true }
-        });
-        const price = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest', {
-            headers: { 'x-CMC_PRO_API_KEY': CMC_API },
-            params: { symbol: 'ETH' }
-        });
-
-        const answer = Number(price.data.data['ETH'].quote.USD.price.toFixed(2));
-        await bot.sendMessage(chatId, `цена eth: ${answer}`);
-
-        bot.onReplyToMessage(chatId, prompt.message_id, async replyMsg => {
-            const userInp = replyMsg.text;
-            await bot.sendMessage(chatId, 'выберите направление', direction);
-
-            bot.once('callback_query', async cbMsg => {
-                const values = cbMsg.data;
-                try {
-                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','ETH',false,'${values}')`);
-                    await bot.sendMessage(chatId, `Ваш алерт создан: ETH ${values} ${userInp}`);
-                } catch (err) {
-                    await bot.sendMessage(chatId, 'ошибка');
+                if (values === 'below') {
+                    try {
+                        await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES(${chatId},'${userInp}','TON',false,'below')`)
+                        
+                    }
+                    catch(err) {
+                        await bot.sendMessage(chatId,'ошибка')
+                    }
+                    await bot.sendMessage(chatId,`ваш алерт:${text},TON,${userInp}`)
                 }
-            });
-        });
-    }
+        
+            })
+            
+        
+    })
+    if(data === 'ask_price_eth'){
+        const prompt = bot.sendMessage(chatId,'напишите цену для ETH',{
+            reply_markup:{
+                force_reply:true
+            }
+        })
+        const price = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
+            headers:{
+                'x-CMC_PRO_API_KEY':CMC_API
+            },
+            params:{
+                symbol:'ETH'
+            }
+        })
 
-    // --- SOL SECTION ---
-    if (data === 'ask_price_sol') {
-        const prompt = await bot.sendMessage(chatId, 'напишите цену для SOL', {
-            reply_markup: { force_reply: true }
-        });
-        const price = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest', {
-            headers: { 'x-CMC_PRO_API_KEY': CMC_API },
-            params: { symbol: 'SOL' }
-        });
 
-        const answer = Number(price.data.data['SOL'].quote.USD.price.toFixed(2));
-        await bot.sendMessage(chatId, `цена SOL: ${answer}`);
+        const answer = Number(price.data.data['ETH'].quote.USD.price.toFixed(2))
+        //in order to select all alert i just need to select user id from the database and compare that to the chatid
 
-        bot.onReplyToMessage(chatId, prompt.message_id, async replyMsg => {
-            const userInp = replyMsg.text;
-            await bot.sendMessage(chatId, 'выберите направление', direction);
+        bot.sendMessage(chatId,`цена eth: ${answer}`)
+        bot.onReplyToMessage(chatId,prompt.message_id,async msg => {
+            const userInp = msg.text
 
-            bot.once('callback_query', async cbMsg => {
-                const data1 = cbMsg.data;
-                try {
-                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','SOL',false,'${data1}')`);
-                    await bot.sendMessage(chatId, `Ваш алерт создан: SOL ${data1} ${userInp}`);
-                } catch (err) {
-                    await bot.sendMessage(chatId, 'ошибка');
+
+            
+            await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
+        bot.once('callback_query',async cbmsg => {
+            const values = cbmsg.data
+            const text = cbmsg.text
+
+            if (values === 'above'){
+                try { 
+                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','ETH',false,'above')`)
                 }
-            });
-        });
-    }
+                catch(err) {
+                    await bot.sendMessage(chatId,'ошибка')
+                }
+                await bot.sendMessage(chatId,`Ваш алерт:${values}.ETH,${userInp}`)
+            }
+            
+            if (values === 'below'){
+                try {
+                   await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','ETH',false,'below')`)
+                }
+                catch(err){
+                    await bot.sendMessage(chatId,'ошибка')
+                }
+                await bot.sendMessage(chatId,`ваш алерт:${values}, ETH,${userInp}`)
+            }
+            
+        })
+        })
 
-}); 
+    }
+    if (data === 'ask_price_sol'){
+        const prompt = bot.sendMessage(chatId,'напишите цену для SOL',{
+            reply_markup:{
+                force_reply:true
+            }
+        })
+
+        const price = axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',{
+            headers:{
+                'x-CMC_PRO_API_KEY':CMC_API
+            },
+            params:{
+                symbol:'SOL'
+            }
+        })
+
+
+        const answer = Number((await price).data.data['SOL'].quote.USD.price.toFixed(2))
+
+        
+        await bot.sendMessage(chatId,`цена SOL: ${answer}`)
+
+        bot.onReplyToMessage(chatId,prompt.message_id, async msg => {
+            const userInp = msg.text
+
+            
+        await bot.sendMessage(chatId,'выберите где вы хотите увидеть свою цену',direction)
+
+        bot.once('callback_query',async cb => {
+            const data1 = cb.data
+            const text = cb.text
+
+
+            if (data1 === 'above') {
+                try{
+                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','SOL',false,'above')`)
+                }
+                catch(err) {
+                    await bot.sendMessage(chatId,'ошибка')
+                }
+            }
+            if(data1 === 'below') {
+                try {
+                    await db.query(`INSERT INTO alert(user_id,price,crypto,trigered,direction) VALUES (${chatId},'${userInp}','SOL',false,'below')`)
+                }
+                catch(err) {
+                    await bot.sendMessage(chatId,'ошибка')
+                }
+            }
+            await bot.sendMessage(chatId,`ваше алерт :${text},SOL,${userInp}`)
+        })
+        
+        })
+        
+    }
+}
+})
 
