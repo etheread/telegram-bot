@@ -278,7 +278,30 @@ bot.on('message', async msg => {
 bot.on('callback_query', async msg => {
     const data = msg.data
     const chatId = msg.message.chat.id
-    
+    if(data === 'view_all_active'){
+        try{
+            const active = await db.query(`SELECT * FROM alert WHERE user_id = ${chatId} AND  trigered = false AND user_id = ${chatId}`)
+            const text = JSON.stringify(active.rows).replace(/[\[\]]/g, '')        
+        .replace(/{/g, '\n—\n')        
+        .replace(/}/g, '')             
+        .replace(/"/g, '')             
+        .replace(/:/g, ': ')           
+        .replace(/,/g, '\n');
+        await bot.sendMessage(chatId,text)
+        }
+        catch(err) {
+            await bot.sendMessage(chatId,'ошибка')
+        }
+    }
+    if (data === 'delete_all_inactive') {
+        try{
+            await db.query(`DELETE FROM alert WHERE user_id = ${chatId} AND trigered = true AND user_id = ${chatId}`)
+        }
+        catch(err) {
+            await bot.sendMessage(chatId,'ошибка')
+        }
+    }
+
 
     if (data === 'ask_price_btc'){
         const prompt = bot.sendMessage(chatId,'напишите цену для  BTC',{
