@@ -169,7 +169,6 @@ http.createServer(async (req, res) => {
     }
 
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.sendDate('hello world')
   res.end('Bot is running...');
 }).listen(8080);
 
